@@ -1,0 +1,226 @@
+* C:\Users\mark_\OneDrive\Documents\Projects\LTspice\PWM-CM3\Flyback_Av_2_Secondaries.asc
+XX4 Vi Vc transconerroramp params: Gain = {TA_Gain}, C_comp2= {TA_Ccomp2}, C_comp = {TA_Ccomp}, R_comp = {TA_Rcomp}, Pos = {TA_compMax}, Neg = 10m, Vref = {Vref}
+R3 Vout 0 R = V(Rload)
+Lpri Vin a {L1} Rser=1m Cpar=0.5p
+Vin_CM1 Vin 0 {Vin}
+XX1 Vc a 0 idealsw params: Fs = {Fs}, Ri = {Rsense}, SlopeAmp = {SlopeAmp}, D_min ={D_lo}, D_max = {D_hi}
+R11 a 0 10Meg
+V6 Rload 0 PULSE({R_idle} {R_step} 3m 100n 100n 4m 8m)
+Lsec 0 V_L2 {L2} Rser=1m Cpar=0.5p
+C1 Vout N001 {Cbulk}
+R1 Vi 0 {Rdiv2}
+R2 Vout Vi {Rdiv1}
+C2 N005 Vi {Cspeed}
+R6 Vout V_L2 R = V(R_Da)
+B1 R_Da 0 V= if( V(V_L2) > V(Vout), 1m, 100k )
+Vin_CM3 Vin_av 0 {Vin}
+R7 Vout_av 0 R = V(Rload)
+C4 Vout_av N003 {Cbulk}
+XX2 Vi_av Vc_av transconerroramp params: Gain = {TA_Gain}, C_comp2= {TA_Ccomp2}, C_comp = {TA_Ccomp}, R_comp = {TA_Rcomp}, Pos = {TA_compMax}, Neg = 10m, Vref = {Vref}
+R4 Vi_av 0 {Rdiv2}
+R5 Vin_bode Vi_av {Rdiv1}
+R8 Vout N005 {Rspeed}
+C3 N004 Vi_av {Cspeed}
+R9 Vin_bode N004 {Rspeed}
+V1 Vin_bode Vout_av SINE(0 1m 1) AC 1m
+R10 N001 0 {Cesr}
+R12 N003 0 {Cesr}
+C5 Vout 0 100n
+C6 Vout_av 0 100n
+R13 Vout_av N002 1m
+XX7 Vc_av Vin_av 0 0 N002 flyback_cm3 params: L= {L1}, Fs = {Fs}, Ri = {Rsense}, SlopeAmp = {SlopeAmp}, D_min ={D_lo}, D_max = {D_hi}, N={Na}
+Lsec_B 0 V_L3 {L3} Rser=1m Cpar=0.5p
+R14 out_B V_L3 R = V(R_Db)
+B2 R_Db 0 V= if( V(V_L3) > V(out_B), 1m, 1meg )
+R15 out_B 0 {load_B}
+C7 out_B 0 {cap_B}
+
+* block symbol definitions
+.subckt transconerroramp Vi Vc
+G1 0 Vc ref_Av N002 { Gain }
+V1 ref_Av 0 {Vref}
+C1 Vc 0 {C_comp2}
+C2 N003 0 {C_comp}
+R1 Vc N003 {R_comp}
+B1 Vc 0 I= if( V(Vc) > {Pos}, {alpha} * ( V(Vc) - {Pos} ), 0 )
+B2 0 Vc I= if( V(Vc) < {Neg}, {alpha} * ( {Neg} - V(Vc) ), 0 )
+R2 Vc 0 1000Meg
+C3 N002 0 1p
+R3 N002 N001 10k
+E1 N001 0 Vi_lim 0 1
+B3 Vi_lim 0 V= limit( V(Vi), {Neg}, {Pos} )
+R4 Vi 0 10Meg
+.param alpha = 5m
+.param R_comp =1k
+.param C_comp = 1n
+.param C_comp2 = 1p
+.param Pos = 4
+.param Neg = 0
+.param Vref = 2.5
+.param Gain = 135u
+.ends transconerroramp
+
+.subckt idealsw Vc a c
+H1 N001 0 V1 1
+V1 a N003 0
+R5 I_sense N001 100
+C2 I_sense 0 100p
+A1 N005 trip_reset 0 0 0 q_bar q 0 SRFLOP
+V2 N005 0 PULSE(0 1 0 {Trise_fall} {Trise_fall} {Ton_min} {Period})
+V3 reset 0 PULSE(0 1 {Ton_max} {Trise_fall} {Trise_fall} {Trise_fall} {Period} )
+V4 ramp 0 PULSE(0 {slopeAmp} 0 {Period - 2*Trise_fall} {Trise_fall} {Trise_fall} {Period})
+B1 sense_slope 0 V={Ri}*V(I_sense) + V(ramp)
+A2 0 reset 0 trip2 0 0 trip_reset 0 OR
+B2 N002 0 V=if( V(sense_slope) > V(Vc), 1, 0)
+R11 trip N002 100
+C8 trip 0 10p
+B3 FET_R 0 V=if( V(q) > 0.5, {Rfet}, 100k )
+B5 trip2_raw 0 V= V(trip) - V(set)
+R1 N003 c R = V(FET_R)
+B4 N004 0 V=if( V(set) < 0.1, V(trip2_raw), 0)
+C1 trip2 0 10p
+R2 trip2 N004 100
+B6 On_time 0 V=if( V(q) > 0.5, V(On-time-ramp), 0 )
+V6 On-time-ramp 0 PULSE(0 {1} 0 {Period - 2*Trise_fall} {Trise_fall} {Trise_fall} {Period})
+C3 set 0 10p
+R3 set N005 100
+.param Period = {1/Fs}
+.param Trise_fall = 1n
+.param Ton_min = {D_min * Period }
+.param Ton_max = {D_max * Period}
+.param Rfet = 1m
+.param Fs = 100k
+.param D_max = 90
+.param D_min = 5
+.param slopeAmp = 0.8
+.param Ri = 0.25
+.ends idealsw
+
+.subckt flyback_cm3 Vc A_in A_out C_in C_out
+Bin a c I= V(I_mag)
+R6 a A_in 1µ
+Bout 0 c_fly I= V(I_demag)
+Viso c_fly N001 0
+E2 N001 0 C_out A_out {1/N}
+B1 A_out C_out I= I(Viso) / {N}
+R4 c C_in 1µ
+XX1 Vc N002 N003 I_mag I_demag pwm_cm3 params: L= {L}, Fs = {Fs}, Ri = {Rsense}, SlopeAmp = {SlopeAmp}, D_min ={D_min}, D_max = {D_max}, N={N}
+B2 N002 0 V= V(a, c)
+B3 N003 0 V= V(c_fly)
+.param L = 10u
+.param Fs = 200k
+.param D_min = 5
+.param D_max = 90
+.param SlopeAmp =0.2
+.param Ri = 0.25
+.param sync = 0
+.param N = 1
+.ends flyback_cm3
+
+.subckt pwm_cm3 Vc V_mag V_demag I_mag I_demag
+R3 Vc 0 10Meg
+B6 I_Pk_min 0 V= V(mag) * {D_min / (Fs * L ) }
+B10 I_pk 0 V= max( V(I_pk_raw), V(I_pk_min) )
+B26 I_pk_raw 0 V= ( V(Vc) - {SlopeAmp} * V(don_2) ) / {Ri}
+B21 Don_0 0 V = {Fs * L} * V(I_pk) / V(mag)
+B11 Doff_0 0 V = {Fs * L} * V(I_pk) / (V(demag) + 1u)
+B12 N005 0 V= if ( V(CCM_test) > 1 , 1, 0 )
+R7 CCM_raw N005 {100*R_lp}
+C2 CCM_raw 0 10p
+B14 Don_1 0 V= limit( V(demag) / ( V(mag) + V(demag) ), {D_min}, {D_max} )
+B15 Doff_1 0 V= 1- V(Don_1)
+B16 N003 0 V= limit( if ( V(CCM) > 0.5 , V(Don_1), V(Don_0) ), {D_min}, {D_max} )
+R17 Don_2 N003 {1*R_lp}
+C10 Don_2 0 10p
+B18 N004 0 V = if ( V(CCM) > 0.5 , V(Doff_1), V(Doff_0) )
+R18 Doff_2 N004 {1*R_lp}
+C11 Doff_2 0 10p
+B23 delta_I_demag 0 V= V(demag) * V(Doff_2) / {L * Fs}
+B24 I_min_mag 0 V= V(I_pk) - V(delta_I_mag)
+B25 delta_I_mag 0 V= V(mag) * V(Don_2) / {L * Fs}
+B28 I_mag 0 V= ( V(I_min_mag) + V(delta_I_mag)/2 ) * V(Don_2)
+B29 I_demag 0 V= ( V(I_pk) - V(delta_I_mag)/2 ) * V(Doff_2)
+B30 I_min_demag 0 V= V(I_pk) - V(delta_I_mag)
+Cs1 CCM_Ind_V P001 { Cs }
+L1 CCM_Ind_V 0 {L} Rser=0.1u
+B3 Ind_V_raw 0 V= if( V(CCM) > 0.5, V(CCM_Ind_V), 0 )
+B5 N001 0 V= V(V_mag) - V(Ind_V)
+R11 mag N001 {1 * R_lp}
+C4 mag 0 10p
+V1 N007 0 {Cs}
+B4 Ind_V 0 V= limit( V(Ind_V_raw), -1*V(V_demag) + 1m, (V(V_mag) - 1m) )
+B20 N002 0 V= V(V_demag) + V(Ind_V)
+R13 demag N002 {R_lp}
+C8 demag 0 10p
+B7 CCM_test 0 V= limit( V(Don_0) + V(Doff_0), 0, 2)
+B22 CCM_test_2 0 V= limit( V(Doff_0) * ( 1 + V(demag) / V(mag) ), 0, 2)
+B13 N006 0 V= if( sync > 0.5, 1, if( V(CCM_test) > 1, V(tst1), V(tst2) ) )
+B19 tst1 0 V= if( V(CCM_raw) > 0.9, 1, 0 )
+B27 tst2 0 V= if( V(CCM_raw) < 0.1, 0, 1 )
+R1 CCM N006 {10*R_lp}
+C5 CCM 0 10p
+B32 0 CCM_Ind_V I = V(I_min_mag)
+Rs1 P001 0 {Rs}
+V2 N008 0 {Rs}
+.param R_lp = 0.1meg/Fs
+.param L = 10u
+.param Fs = 200k
+.param D_min = 0.05
+.param D_max = 0.90
+.param SlopeAmp =0.2
+.param Ri = 0.25
+.param sync = 0
+.param Cs = { 1 / ( L * (pi * Fs)**2 ) }
+.param Rs = { sqrt( L / Cs ) / Q }
+.param Q = 5
+.ends pwm_cm3
+
+.tran 0 14m 0
+.param L1 = 800u
+.param Fs = 100k
+.param D_lo = 0.05
+.param D_hi = 0.95
+.param SlopeAmp = 0.5
+* Duty Cycle Limits
+* IC Parameters
+.param Vout = 10
+.param Cbulk = 300u
+.param Cesr = 10u
+.param Vin = 80
+.param Lesr = 1m
+.param Rsense = 0.3
+.param Rdiv2 = 10k
+.param Rdiv1 = Rdiv2 * (Vout - Vref) / Vref
+.param Vref = 1
+* TA Parameters
+.param TA_Rcomp = 500
+.param TA_Ccomp = 2n
+.param TA_Ccomp2 = 500p
+.param TA_Gain = 320u
+.param TA_compMax = 5
+.param TA_compMin = 1m
+.param I_step = 0.2
+.param I_idle = 3
+.param R_idle = Vout / I_idle
+.param Rspeed = 1k
+.param Cspeed = 500p
+* Circuit Parameters
+.param R_step = Vout / I_step
+* Load Parameters
+.param L2 = L1 * Na**2
+k1 Lpri Lsec 1
+.param Na 0.125
+* .ac dec 100 100 1meg
+* .step param SlopeAmp list 0.1 1
+.ic V(Vout) = {Vout}
+.ic V(Vc) = 0.5
+.ic V(Vi) = {Vref}
+* .step param Vout 30 50 20
+.param L3 = L1 * Nb**2
+.param Nb 0.0625
+k2 Lpri Lsec_B 1
+k3 Lsec Lsec_B 1
+.param load_B = 100
+.param cap_B = 100u
+.backanno
+.end

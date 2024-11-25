@@ -1,0 +1,20 @@
+Version 4
+SymbolType BLOCK
+RECTANGLE Normal -160 -88 176 96
+TEXT -30 -56 Left 3 PWM-CM3
+WINDOW 0 -79 -87 Bottom 2
+PIN -160 64 LEFT 8
+PINATTR PinName V_demag
+PINATTR SpiceOrder 3
+PIN -160 0 LEFT 8
+PINATTR PinName V_mag
+PINATTR SpiceOrder 2
+PIN -160 -64 LEFT 8
+PINATTR PinName Vc
+PINATTR SpiceOrder 1
+PIN 176 64 RIGHT 8
+PINATTR PinName I_demag
+PINATTR SpiceOrder 5
+PIN 176 0 RIGHT 8
+PINATTR PinName I_mag
+PINATTR SpiceOrder 4

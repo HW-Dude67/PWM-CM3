@@ -1,0 +1,218 @@
+* C:\Users\mark_\OneDrive\Documents\Projects\LTspice\PWM-CM3\BuckBoost_negInput.asc
+R5 CM_p N007 1µ
+R_L2 0 CM_a 10m
+Vin_CM 0 N007 {Vin}
+C2 CM_out N005 {Cbulk}
+R6 N005 0 {Cesr}
+R8 N003 CM_out 1µ
+C4 CM_out 0 1n
+R4 CM_in CM_Vi {Rdiv1}
+R9 CM_Vi 0 {Rdiv2}
+R10 CM_in N009 {Rspeed}
+C6 N009 CM_Vi {Cspeed}
+V3 CM_in CM_out 0 AC 1u
+V2 Rload 0 PULSE({R_idle} {R_step} 0.5ms {loadRiseFall} {loadRiseFall} 1m 6m)
+R2 CM_out 0 R = V(Rload)
+XX2 CM_Vi CM_Vc transconerroramp params: C_comp = {TA_Ccomp}, R_comp = {TA_Rcomp}, Pos = {TA_Max}, Neg = {TA_Min}, Gain = {TA_Gain}, Vref = {Vref}
+R1 a N006 1µ
+L1 N001 c {L}
+R_L1 0 N001 10m
+Vin_CM1 0 N006 {Vin}
+C1 out N004 {Cbulk}
+R3 N004 0 {Cesr}
+R7 N002 out 1µ
+C3 out 0 1n
+R11 out Vi {Rdiv1}
+R12 Vi 0 {Rdiv2}
+R13 out N008 {Rspeed}
+C5 N008 Vi {Cspeed}
+R14 out 0 R = V(Rload)
+XX5 Vi Vc transconerroramp params: C_comp = {TA_Ccomp}, R_comp = {TA_Rcomp}, Pos = {TA_Max}, Neg = {TA_Min}, Gain = {TA_Gain}, Vref = {Vref}
+XX3 Vc a c N002 idealboost params: Fs = {Fs}, Ri = {Rsense}, SlopeAmp = {SlopeAmp}, D_min = {D_lo}, D_max = {D_hi}
+XX4 CM_Vc CM_a N003 CM_p boost_cm3 params: Fs = {Fs}, Ri = {Rsense}, L = {L}, SlopeAmp = {SlopeAmp}, D_min = {D_lo}, D_max = {D_hi}
+
+* block symbol definitions
+.subckt transconerroramp Vi Vc
+G1 0 Vc ref_Av N002 { Gain }
+V1 ref_Av 0 {Vref}
+C1 Vc 0 {C_comp2}
+C2 N003 0 {C_comp}
+R1 Vc N003 {R_comp}
+B1 Vc 0 I= if( V(Vc) > {Pos}, {alpha} * ( V(Vc) - {Pos} ), 0 )
+B2 0 Vc I= if( V(Vc) < {Neg}, {alpha} * ( {Neg} - V(Vc) ), 0 )
+R2 Vc 0 1000Meg
+C3 N002 0 1p
+R3 N002 N001 10k
+E1 N001 0 Vi_lim 0 1
+B3 Vi_lim 0 V= limit( V(Vi), {Neg}, {Pos} )
+R4 Vi 0 10Meg
+.param alpha = 5m
+.param R_comp =1k
+.param C_comp = 1n
+.param C_comp2 = 1p
+.param Pos = 4
+.param Neg = 0
+.param Vref = 2.5
+.param Gain = 135u
+.ends transconerroramp
+
+.subckt idealboost Vc a c p
+H1 N001 0 V1 1
+V1 c Sw 0
+R5 I_sense N001 100
+C2 I_sense 0 100p
+A1 set trip_reset 0 0 0 q_bar q 0 SRFLOP
+V2 set 0 PULSE(0 1 0 {Trise_fall} {Trise_fall} {Ton_min} {Period})
+V3 reset 0 PULSE(0 1 {Ton_max} {Trise_fall} {Trise_fall} {Trise_fall} {Period} )
+H2 N002 0 V5 1
+R8 N003 N002 100
+C5 N003 0 100n
+V4 ramp 0 PULSE(0 {slopeAmp} 0 {Period - 2*Trise_fall} {Trise_fall} {Trise_fall} {Period})
+B1 sense_slope 0 V={Ri}*V(I_sense) + V(ramp)
+V5 Sw N004 0
+R10 I_out N003 1000
+C7 I_out 0 10n
+A2 0 reset 0 trip2 0 0 trip_reset 0 OR
+B2 N005 0 V=if( V(sense_slope) > V(Vc), 1, 0)
+R11 trip N005 100
+C8 trip 0 10p
+B3 FET_R 0 V=if( V(q) > 0.5, {Rfet}, 1meg )
+R2 N004 p R=V(Rdiode)
+B4 Rdiode 0 V= if( V(Sw) > V(p), 10m, 100k )
+B5 trip2 0 V= V(trip) - V(set)
+V6 On_time_ramp 0 PULSE(0 {1} 0 {Period - 2*Trise_fall} {Trise_fall} {Trise_fall} {Period})
+B6 On_time 0 V=if( V(q) > 0.5, V(On_time_ramp), 0 )
+R1 Sw a R = V(FET_R)
+.param Period = {1/Fs}
+.param Trise_fall = 1n
+.param Ton_min = {D_min * Period }
+.param Ton_max = {D_max * Period}
+.param Rfet = 1m
+.param Fs = 100k
+.param D_max = 90
+.param D_min = 5
+.param slopeAmp = 0.8
+.param Ri = 0.25
+.ends idealboost
+
+.subckt boost_cm3 Vc A C P
+Bin a p I= V(I_mag)
+Bout a c I= V(I_demag)
+XX1 Vc N001 N002 I_mag I_demag pwm_cm3 params: sync = {sync}, L = {L}, Fs = {Fs}, Ri = {Ri} , SlopeAmp = {SlopeAmp}, D_min = {D_min}, D_max = {D_max}
+B1 N001 0 V= V(a, p)
+B2 N002 0 V= V(c, a)
+.param L = 10u
+.param Fs = 200k
+.param D_min = 0.05
+.param D_max = 0.90
+.param SlopeAmp =0.2
+.param Ri = 0.25
+.param sync = 0
+.ends boost_cm3
+
+.subckt pwm_cm3 Vc V_mag V_demag I_mag I_demag
+R3 Vc 0 10Meg
+B6 I_Pk_min 0 V= V(mag) * {D_min / (Fs * L ) }
+B10 I_pk 0 V= max( V(I_pk_raw), V(I_pk_min) )
+B26 I_pk_raw 0 V= ( V(Vc) - {SlopeAmp} * V(don_2) ) / {Ri}
+B21 Don_0 0 V = {Fs * L} * V(I_pk) / V(mag)
+B11 Doff_0 0 V = {Fs * L} * V(I_pk) / (V(demag) + 1u)
+B12 N005 0 V= if ( V(CCM_test) > 1 , 1, 0 )
+R7 CCM_raw N005 {100*R_lp}
+C2 CCM_raw 0 10p
+B14 Don_1 0 V= limit( V(demag) / ( V(mag) + V(demag) ), {D_min}, {D_max} )
+B15 Doff_1 0 V= 1- V(Don_1)
+B16 N003 0 V= limit( if ( V(CCM) > 0.5 , V(Don_1), V(Don_0) ), {D_min}, {D_max} )
+R17 Don_2 N003 {1*R_lp}
+C10 Don_2 0 10p
+B18 N004 0 V = if ( V(CCM) > 0.5 , V(Doff_1), V(Doff_0) )
+R18 Doff_2 N004 {1*R_lp}
+C11 Doff_2 0 10p
+B23 delta_I_demag 0 V= V(demag) * V(Doff_2) / {L * Fs}
+B24 I_min_mag 0 V= V(I_pk) - V(delta_I_mag)
+B25 delta_I_mag 0 V= V(mag) * V(Don_2) / {L * Fs}
+B28 I_mag 0 V= ( V(I_min_mag) + V(delta_I_mag)/2 ) * V(Don_2)
+B29 I_demag 0 V= ( V(I_pk) - V(delta_I_mag)/2 ) * V(Doff_2)
+B30 I_min_demag 0 V= V(I_pk) - V(delta_I_mag)
+Cs1 CCM_Ind_V P001 { Cs }
+L1 CCM_Ind_V 0 {L} Rser=0.1u
+B3 Ind_V_raw 0 V= if( V(CCM) > 0.5, V(CCM_Ind_V), 0 )
+B5 N001 0 V= V(V_mag) - V(Ind_V)
+R11 mag N001 {1 * R_lp}
+C4 mag 0 10p
+V1 N007 0 {Cs}
+B4 Ind_V 0 V= limit( V(Ind_V_raw), -1*V(V_demag) + 1m, (V(V_mag) - 1m) )
+B20 N002 0 V= V(V_demag) + V(Ind_V)
+R13 demag N002 {R_lp}
+C8 demag 0 10p
+B7 CCM_test 0 V= limit( V(Don_0) + V(Doff_0), 0, 2)
+B22 CCM_test_2 0 V= limit( V(Doff_0) * ( 1 + V(demag) / V(mag) ), 0, 2)
+B13 N006 0 V= if( sync > 0.5, 1, if( V(CCM_test) > 1, V(tst1), V(tst2) ) )
+B19 tst1 0 V= if( V(CCM_raw) > 0.9, 1, 0 )
+B27 tst2 0 V= if( V(CCM_raw) < 0.1, 0, 1 )
+R1 CCM N006 {10*R_lp}
+C5 CCM 0 10p
+B32 0 CCM_Ind_V I = V(I_min_mag)
+Rs1 P001 0 {Rs}
+V2 N008 0 {Rs}
+.param R_lp = 0.1meg/Fs
+.param L = 10u
+.param Fs = 200k
+.param D_min = 0.05
+.param D_max = 0.90
+.param SlopeAmp =0.2
+.param Ri = 0.25
+.param sync = 0
+.param Cs = { 1 / ( L * (pi * Fs)**2 ) }
+.param Rs = { sqrt( L / Cs ) / Q }
+.param Q = 5
+.ends pwm_cm3
+
+.ac oct 100 10 10meg
+.param L = 30u
+.param Fs = 100k
+.param D_lo = {80n * Fs}
+.param D_hi = 0.9
+.param SlopeAmp = 0.8m
+* Duty Cycle Limits
+* IC Parameters
+.param Vout = 6
+.param Cbulk = {100u}
+.param Cesr = 1m
+.param Vin = 5
+.param Lesr = 10m
+.param Rsense = 250m
+.param Rdiv2 = 10k
+.param Rdiv1 = Rdiv2 * (Vout - Vref) / Vref
+.param Vref = 1.24
+* TA Parameters
+.param TA_Rcomp = 30k
+.param TA_Ccomp = 2n
+.param TA_Ccomp2 = 1p
+.param TA_Gain = 135u
+.param TA_Max = 2.4
+.param TA_Min = 1m
+.param I_step = 30mA
+.param I_idle = 500m
+.param R_idle = Vout / I_idle
+.param loadRiseFall = 1u
+.param Rspeed = 10meg
+.param Cspeed = 1p
+.param Vc = 390m
+* Circuit Parameters
+.param R_step = Vout / I_step
+.ic V(out) = {Vout}
+.ic V(Vi) = {Vref}
+* Load Parameters
+.ic V(Vc) = Vc
+.ic I(L1) = {I_idle}
+* Drawn : Mark Dimattina
+* Title : BuckBoost_negInput
+* Rev: 0.01
+* Date: 02/09/2017
+* M.J.Dimattina@ieee.org
+* .tran 0 6m 0
+.ic V(c) = -10m
+.step param Vout 4 6 2
+.backanno
+.end

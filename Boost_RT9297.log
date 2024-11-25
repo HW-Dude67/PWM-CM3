@@ -1,0 +1,60 @@
+Circuit: * C:\Users\mark_\OneDrive\Documents\Projects\LTspice\PWM-CM3\Boost_RT9297.asc
+
+WARNING: Less than two connections to node X3:Q_BAR.  This node is used by A:X3:1.
+WARNING: Less than two connections to node X3:ON_TIME.  This node is used by B:X3:6.
+WARNING: Less than two connections to node X7:X1:DELTA_I_DEMAG.  This node is used by B:X7:X1:23.
+WARNING: Less than two connections to node X7:X1:I_MIN_DEMAG.  This node is used by B:X7:X1:30.
+WARNING: Less than two connections to node X7:X1:N007.  This node is used by V:X7:X1:1.
+WARNING: Less than two connections to node X7:X1:CCM_TEST_2.  This node is used by B:X7:X1:22.
+WARNING: Less than two connections to node X7:X1:N008.  This node is used by V:X7:X1:2.
+WARNING: Less than two connections to node X2:MODE.  This node is used by B:X2:9.
+Direct Newton iteration failed to find .op point.  (Use ".option noopiter" to skip.)
+Starting Gmin stepping
+Gmin = 10
+Gmin = 1.07374
+Gmin = 0.115292
+Gmin = 0.0123794
+Gmin = 0.00132923
+vernier = 0.5
+Gmin = 0.000223007
+vernier = 0.666667
+Gmin = 5.72562e-005
+vernier = 0.888888
+vernier = 1
+Gmin = 7.53781e-006
+Gmin = 8.09366e-007
+Gmin = 8.6905e-008
+Gmin = 9.33136e-009
+Gmin = 1.00195e-009
+Gmin = 1.07583e-010
+Gmin = 1.15517e-011
+Gmin = 1.24035e-012
+Gmin = 1.33182e-013
+Gmin = 0
+Gmin stepping succeeded in finding the operating point.
+
+Ignoring empty pin current: Ix(x3:vc)
+Ignoring empty pin current: Ix(x7:x1:v_mag)
+Ignoring empty pin current: Ix(x7:x1:v_demag)
+Ignoring empty pin current: Ix(x3:vc)
+Ignoring empty pin current: Ix(x7:x1:v_mag)
+Ignoring empty pin current: Ix(x7:x1:v_demag)
+
+Date: Tue Jun 04 20:52:24 2024
+Total elapsed time: 46.704 seconds.
+
+tnom = 27
+temp = 27
+method = Gear
+totiter = 1981772
+traniter = 1981202
+tranpoints = 780353
+accept = 631162
+rejected = 149191
+matrix size = 176
+fillins = 157
+solver = Alternate
+Thread vector: 16.5/6.6[5] 2.8/1.4[5] 5.7/3.4[5] 2.0/1.5[4]  2592/500
+Matrix Compiler1: 16.93 KB object code size  2.9/2.4/[1.7]
+Matrix Compiler2: 14.75 KB object code size  1.5/3.1/[1.5]
+

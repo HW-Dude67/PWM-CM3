@@ -1,0 +1,50 @@
+Circuit: * C:\Users\mark_\OneDrive\Documents\Projects\LTspice\PWM-CM3\Flyback_Av_2.asc
+
+WARNING: Less than two connections to node X1:Q_BAR.  This node is used by A:X1:1.
+WARNING: Less than two connections to node X1:ON_TIME.  This node is used by B:X1:6.
+WARNING: Less than two connections to node X7:X1:DELTA_I_DEMAG.  This node is used by B:X7:X1:23.
+WARNING: Less than two connections to node X7:X1:I_MIN_DEMAG.  This node is used by B:X7:X1:30.
+WARNING: Less than two connections to node X7:X1:N008.  This node is used by V:X7:X1:1.
+WARNING: Less than two connections to node X7:X1:N009.  This node is used by B:X7:X1:2.
+Direct Newton iteration for .op point succeeded.
+Ignoring empty pin current: Ix(x1:vc)
+Ignoring empty pin current: Ix(x7:x1:v_mag)
+Ignoring empty pin current: Ix(x7:x1:v_demag)
+Ignoring empty pin current: Ix(x1:vc)
+Ignoring empty pin current: Ix(x7:x1:v_mag)
+Ignoring empty pin current: Ix(x7:x1:v_demag)
+Heightened Def Con from 0.00132 to 0.00132
+Heightened Def Con from 0.00254 to 0.00254002
+Heightened Def Con from 0.00351 to 0.00351002
+Heightened Def Con from 0.00353 to 0.00353002
+Heightened Def Con from 0.00354 to 0.00354002
+Heightened Def Con from 0.00356 to 0.00356002
+Heightened Def Con from 0.00357 to 0.00357002
+Heightened Def Con from 0.00419 to 0.00419
+Heightened Def Con from 0.0042 to 0.0042
+Heightened Def Con from 0.005 to 0.005
+Heightened Def Con from 0.00735 to 0.00735002
+Heightened Def Con from 0.00772 to 0.00772002
+Heightened Def Con from 0.00774 to 0.00774002
+Heightened Def Con from 0.00786 to 0.00786002
+Heightened Def Con from 0.00789 to 0.00789002
+Heightened Def Con from 0.00793 to 0.00793002
+
+Date: Mon Jun 10 16:54:15 2024
+Total elapsed time: 27.783 seconds.
+
+tnom = 27
+temp = 27
+method = Gear
+totiter = 1213844
+traniter = 1213833
+tranpoints = 489721
+accept = 393401
+rejected = 96336
+matrix size = 143
+fillins = 94
+solver = Alternate
+Thread vector: 13.4/5.0[4] 2.1/1.0[4] 3.0/1.2[4] 1.0/1.8[1]  2592/500
+Matrix Compiler1: 10.40 KB object code size  2.3/1.4/[1.0]
+Matrix Compiler2: 11.00 KB object code size  1.1/1.5/[0.9]
+
